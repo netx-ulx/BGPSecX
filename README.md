@@ -119,7 +119,7 @@ evaluation/gnuplot/plot_rpki_chart.sh <path/csv_file>
 
 ## Final remarks
 
-That is all. However we observe which the processing time of validations depends of computation resource. Normaly, for OA, PV and PEV is about 1-hour for a x86/I7 single core. But for the OA-RPKI simulation, the time can reach days if simulation is done for all datasets using a single process.  
+That is all. However we observe which the processing time of validations depends of computation resource. Normaly, for OA, PV and PEV is about 1-hour for a x86/I7 single core. But for the OA-RPKI simulation, the time can reach days if simulation is done for all datasets using a single process.
 
 
 
