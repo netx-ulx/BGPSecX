@@ -1,9 +1,9 @@
-
 /*
- * BGPSecXChartPlot -  Jan/2017
+ * BGPSecXGroupedChart -  Oct/2017
  * 
- * Utility to plot results of OA, PV and PV  validation tests
- * Uses as input a set of CSV files defined from a configuration file.
+ * Plot results of OA, PV and PV validation tests 
+ * grouped by type of validation Uses as input a 
+ * set of CSV files defined from a configuration file.
  * 
  * Authors: NETX-ULX Team
  * 
@@ -39,9 +39,9 @@ import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
-public class BGPSecXChartPlot extends ApplicationFrame {
+public class BGPSecXGroupedChart extends ApplicationFrame {
 	private static final long serialVersionUID = 1L;
-	private final static String appVersion = "1.0.0_b20170105-01";
+	private final static String appVersion = "1.0.0_b20171020-01";
 	private final static String appName = "BGPSecX-ChartPlot";
 	private final static String[] categoryGrp = { "OA", "PV", "PEV" };
 	private final static String[] chartTitle = { "OA using BGPSecX ", "PV using BGPSecX ", "PEV using BGPSecX " };
@@ -63,15 +63,13 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 
 	public static void main(final String[] args) {
 		if (args.length > 2) {
-			// check if args is a number
-			if (checkArgs(args[1]) && checkArgs(args[2])) {
+			if (isNumber(args[1]) && isNumber(args[2])) {
 				// Type of validation (OA=0, PV=1, PEV=2, All=3)
 				int typeVal = Integer.parseInt(args[1]);
 				if (typeVal >= 0 && typeVal <= 4) {
 					System.out.println(charBold + appName + ", v" + appVersion);
 					int first = 0;
 					int last = 0;
-
 					if (typeVal == 3) {
 						first = 0;
 						last = 2;
@@ -79,7 +77,6 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 						first = typeVal;
 						last = typeVal;
 					}
-
 					try (Stream<String> lines = Files.lines(Paths.get(args[0]), StandardCharsets.ISO_8859_1)) {
 						for (String line : (Iterable<String>) lines::iterator) {
 							datasetList.add(line);
@@ -87,7 +84,6 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 					} catch (IOException e) {
 						printFileNotFound(args[0]);
 					}
-
 					int totalSets = datasetList.size();
 					int setPerChart = Integer.parseInt(args[2]);
 					int totalChart = (int) Math.ceil((float) totalSets / (float) setPerChart);
@@ -95,7 +91,6 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 					if (setPerChart < 1 || setPerChart > totalSets) {
 						printSintax();
 					}
-
 					for (int j = first; j <= last; j++) {
 						typeValidation = j;
 						datasetGrp.clear();
@@ -105,7 +100,6 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 							} else {
 								createChartValues(setPerChart * i - setPerChart, setPerChart * i - 1);
 							}
-
 							String numberCharts = "";
 							if (totalChart > 1) {
 								numberCharts = "(" + i + "/" + totalChart + ")";
@@ -115,7 +109,7 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 							checkDir();
 							String imgName = chartDir + "/" + categoryGrp[typeValidation] + i + "-" + totalChart
 									+ ".png";
-							final BGPSecXChartPlot plotChart = new BGPSecXChartPlot(
+							final BGPSecXGroupedChart plotChart = new BGPSecXGroupedChart(
 									chartTitle[typeValidation] + " " + numberCharts, "",
 									"% based in the total of prefixes", imgName);
 							plotChart.pack();
@@ -137,7 +131,7 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 	}
 
 	@SuppressWarnings("deprecation")
-	public BGPSecXChartPlot(final String title, String xLabel, String yLabel, String imgFilename) {
+	public BGPSecXGroupedChart(final String title, String xLabel, String yLabel, String imgFilename) {
 		super(title);
 		Font xFont = new Font("Arial", Font.BOLD, 17);
 		Font yFont = new Font("Arial", Font.BOLD, 16);
@@ -197,8 +191,8 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 	}
 
 	public static void createChartValues(int start, int end) {
-		BGPSecXChartPlot.start = start;
-		BGPSecXChartPlot.end = end;
+		BGPSecXGroupedChart.start = start;
+		BGPSecXGroupedChart.end = end;
 		int countLines = 0;
 		int countPercent = 0;
 		// Interval of lines to read in dataset file configuration
@@ -217,7 +211,7 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 						ArrayList<String> aList2 = new ArrayList<String>(Arrays.asList(line2.split(" ")));
 						dataList = new ArrayList<Double>();
 						// Scan sample values in column for each line
-						for (int j = 3; j < 13; j++) {						
+						for (int j = 3; j < 13; j++) {
 							if (countLines == 6) {
 								// Repeat the same value when in 100%
 								dataList.add(Double.valueOf(aList2.get(3)));
@@ -270,7 +264,7 @@ public class BGPSecXChartPlot extends ApplicationFrame {
 		System.exit(0);
 	}
 
-	public static boolean checkArgs(String arg) {
+	public static boolean isNumber(String arg) {
 		if (arg.matches("[+-]?\\d*(\\.\\d+)?")) {
 			return true;
 		}

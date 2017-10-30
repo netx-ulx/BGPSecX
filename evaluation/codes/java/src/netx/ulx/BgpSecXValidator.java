@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 public class BgpSecXValidator {
 
-	public final static String appVersion = "1.0.0_b20161109-00";
+	public final static String appVersion = "1.0.0_b201710100-00";
 	public final static String appName = "BGPSecX - Dataset validator";
 	private final static String csvDir = System.getProperty("user.dir") + "/csv";
 	public final static DecimalFormat decFormat = new DecimalFormat("#0.00");
@@ -44,9 +44,10 @@ public class BgpSecXValidator {
 	private static String peeringFile = null;
 	public static File file;
 	public static String outFile;
-	// Total of validations
 	public static long countQueries = 0;
+	public static long countUpdts = 0;
 	public static int totSamples = 10;
+	public static boolean validSeq;
 	public static HashMap<String, List<Long>> sampleResult = new HashMap<>();
 	public static HashMap<String, List<Long>> sampleResultP = new HashMap<>();
 	public static HashMap<String, Long> tb = new HashMap<>();
@@ -77,7 +78,6 @@ public class BgpSecXValidator {
 				validationType = Integer.parseInt(args[1]);
 				if (validationType >= 0 && validationType <= 3) {
 					int totVal = 1;
-
 					// Make all type of validations
 					if (validationType == 3) {
 						totVal = 3;
@@ -92,7 +92,6 @@ public class BgpSecXValidator {
 						if (totVal == 3) {
 							validationType = k;
 						}
-
 						try (Stream<String> lines = Files.lines(Paths.get(args[0]), StandardCharsets.ISO_8859_1)) {
 							// Read path of each datafile
 							for (String datasetPath : (Iterable<String>) lines::iterator) {
@@ -104,10 +103,8 @@ public class BgpSecXValidator {
 									for (int i = 0; i < percentLabels.length; i++) {
 										dataResultV = new ArrayList<Long>();
 										dataResultI = new ArrayList<Long>();
-										dataResultP = new ArrayList<Long>();
 										dataResultV.clear();
 										dataResultI.clear();
-										dataResultP.clear();
 
 										// Make only one sample for 100%
 										if (i == percentLabels.length - 1) {
@@ -139,7 +136,6 @@ public class BgpSecXValidator {
 													}
 													processPev(datasetPath, percentLabels[i], j);
 												}
-
 											} else {
 												System.out.println("Error in the copy table process, percent value: "
 														+ percentLabels[i]);
@@ -195,27 +191,13 @@ public class BgpSecXValidator {
 			for (int i = 0; i < percentLabels.length; i++) {
 				dataResultV = sampleResult.get(percentLabels[i] + "v");
 				double average = dataResultV.stream().mapToLong(a -> a).average().getAsDouble();
-				System.out.println(countQueries + " " + decFormat.format(average) + " "
-						+ decFormat.format((average / countQueries * 100)) + " "
+				System.out.println(countUpdts + " " + decFormat.format(average) + " "
+						+ decFormat.format((average / countUpdts * 100)) + " "
 						+ dataResultV.toString().replaceAll("[\\[\\]\\,]", ""));
-				writeFile.write(countQueries + " " + decFormat.format(average) + " "
-						+ decFormat.format((average / countQueries * 100)) + " "
+				writeFile.write(countUpdts + " " + decFormat.format(average) + " "
+						+ decFormat.format((average / countUpdts * 100)) + " "
 						+ dataResultV.toString().replaceAll("[\\[\\]\\,]", ""));
 				writeFile.newLine();
-			}
-
-			if (validationType == 1) { // PV Validation
-				for (int i = 0; i < percentLabels.length; i++) {
-					dataResultP = sampleResultP.get(percentLabels[i] + "p");
-					double average = dataResultP.stream().mapToLong(a -> a).average().getAsDouble();
-					System.out.println(countQueries + " " + decFormat.format(average) + " "
-							+ decFormat.format((average / countQueries * 100)) + " "
-							+ dataResultP.toString().replaceAll("[\\[\\]\\,]", ""));
-					writeFile.write(countQueries + " " + decFormat.format(average) + " "
-							+ decFormat.format((average / countQueries * 100)) + " "
-							+ dataResultP.toString().replaceAll("[\\[\\]\\,]", ""));
-					writeFile.newLine();
-				}
 			}
 			writeFile.close();
 			System.out.println(charBold + "Created the CSV file in: " + charNormal + csvDir + "/" + filename + "_"
@@ -234,14 +216,20 @@ public class BgpSecXValidator {
 		initMap();
 		String asnToVerify;
 		countQueries = 0; // Total of validation queries
+		countUpdts = 0; // Count number of updates
 		try (Stream<String> lines = Files.lines(Paths.get(dataFile), StandardCharsets.ISO_8859_1)) {
 			for (String line : (Iterable<String>) lines::iterator) {
 				ArrayList<String> aList = new ArrayList<String>(Arrays.asList(line.split(" ")));
 				countQueries++; // Count numbers of ASNs
+				countUpdts = countQueries;
 				// Get origin ASN in the AS_PATH
-				asnToVerify = aList.get(aList.size() - 1);
+				// asnToVerify = aList.get(aList.size() - 1);
+				asnToVerify = aList.get(0);
+				// System.out.println("ASNtoVerify: " + asnToVerify + ", TotInPool: " +
+				// asnPoolToValidate.size());
 				if (asnPoolToValidate.contains(asnToVerify)) {
 					tb.put(percent + "v", tb.get(percent + "v") + 1);
+					// System.out.println("Update: " + line + ", #Updt: " + (countUpdts + 1));
 				} else { // Invalid Update
 					tb.put(percent + "i", tb.get(percent + "i") + 1);
 				}
@@ -258,47 +246,29 @@ public class BgpSecXValidator {
 	public static void processPv(String dataFile, String percent, int sample) {
 		initMap();
 		countQueries = 0; // // Total of validation queries
+		countUpdts = 0; // Count number of updates
 		int totASNs;
 		// There are two valid ASNs in sequence (are valid partially)
-		boolean validSeq;
-		int validSeqTmp;
-		boolean ffalse = false, ftrue = false;
 		try (Stream<String> lines = Files.lines(Paths.get(dataFile), StandardCharsets.ISO_8859_1)) {
-			validSeqTmp = 0;
 			for (String line : (Iterable<String>) lines::iterator) {
 				ArrayList<String> aList = new ArrayList<String>(Arrays.asList(line.split(" ")));
-				ftrue = false;
-				ffalse = false;
 				totASNs = aList.size();
-				validSeq = false;
+				validSeq = true;
 				for (int i = 0; i < totASNs; i++) {
 					countQueries++;
 					// Get each ASN to verifiy
-					if (asnPoolToValidate.contains(aList.get(i))) {
-						ftrue = true;
-						validSeqTmp++;
-						// In the AS PATH there are two valid ASNs in sequence
-						if (validSeqTmp == 2) {
-							validSeq = true;
-							validSeqTmp = 0;
-						}
-					} else {
-						// The sequence was interrupted by one invalid ASN
-						validSeqTmp = 0;
+					if (!(asnPoolToValidate.contains(aList.get(i)))) {
+						validSeq = false;
 					}
 				}
-				if (ffalse == false && ftrue == true) {
+				if (validSeq) {
 					tb.put(percent + "v", tb.get(percent + "v") + 1);
+					// System.out.println("Update: " + line + ", #Updt: " + (countUpdts + 1));
 					// Partial validation
-				} else if (validSeq) {
-					tb.put(percent + "p", tb.get(percent + "p") + 1);
-					// All ASNs are invalid
-					// There are two valid ASNs in sequence
-				} else if (ffalse == true && (ftrue == false || ftrue == true)) {
+				} else {
 					tb.put(percent + "i", tb.get(percent + "i") + 1);
 				}
-				validSeqTmp = 0;
-				validSeq = false;
+				countUpdts++;
 			}
 			printResult(percent, sample);
 		} catch (IOException e) {
@@ -312,7 +282,7 @@ public class BgpSecXValidator {
 	public static void processPev(String dataFile, String percent, int sample) {
 		initMap();
 		countQueries = 0; // // Total of validation queries
-		boolean ffalse = false, ftrue = false; // Flags to check valid/invalid
+		countUpdts = 0; // Count number of updates
 		int lenData, asnInPath;
 		try (Stream<String> lines = Files.lines(Paths.get(dataFile), StandardCharsets.ISO_8859_1)) {
 			for (String line : (Iterable<String>) lines::iterator) {
@@ -323,36 +293,24 @@ public class BgpSecXValidator {
 				} else {
 					lenData = 1;
 				}
-				ftrue = false;
-				ffalse = false;
-				for (int i = (asnInPath - lenData); i < asnInPath; i++) {
+				validSeq = true;
+				// for (int i = (asnInPath - lenData); i < asnInPath; i++) {
+				for (int i = 0; i < lenData; i++) {
 					// Count number of verifications
 					countQueries++;
-					if (asnPoolToValidate.contains(aList.get(i))) {
-						// valid ASN
-						ftrue = true;
-					} else {
-						// Invalid ASN
-						ffalse = true;
+					if (!(asnPoolToValidate.contains(aList.get(i)))) {
+						validSeq = false;
 					}
 				}
 				// Valid PEV (Both ASNs are valid)
-				if (ffalse == false && ftrue == true) {
+				if (validSeq) {
 					tb.put(percent + "v", tb.get(percent + "v") + 1);
-				}
-
-				// Invalid PEV (Both ASNs are invalid)
-				if (ffalse == true && ftrue == false) {
+				} else {
 					tb.put(percent + "i", tb.get(percent + "i") + 1);
 				}
-
-				// Invalid PEV (There are one valid and other invalid)
-				if (ffalse == true && ftrue == true) {
-					tb.put(percent + "i", tb.get(percent + "i") + 1);
-				}
+				countUpdts++;
 			}
 			printResult(percent, sample);
-
 		} catch (IOException e) {
 			printFileNotFound(dataFile);
 		}
@@ -380,7 +338,6 @@ public class BgpSecXValidator {
 		for (int i = 0; i < percentLabels.length; i++) {
 			tb.put(percentLabels[i] + "v", (long) 0);
 			tb.put(percentLabels[i] + "i", (long) 0);
-			tb.put(percentLabels[i] + "p", (long) 0);
 		}
 	}
 
@@ -400,9 +357,8 @@ public class BgpSecXValidator {
 
 	public static void printResult(String percent, int sample) {
 		// Partially valid should considered only in PV
-		System.out.println(percent + "%" + ", Sample: " + sample + "; Total Queries: " + countQueries + "; Valid: "
-				+ tb.get(percent + "v") + "; Invalid: " + tb.get(percent + "i") + "; Partially valid: "
-				+ tb.get(percent + "p"));
+		System.out.println(percent + "%" + ", Sample: " + sample + "; Total Updates: " + countUpdts + "; Valid: "
+				+ tb.get(percent + "v") + "; Invalid: " + tb.get(percent + "i"));
 	}
 
 	public static void checkDir(String dir) {
@@ -416,8 +372,8 @@ public class BgpSecXValidator {
 		System.out.println(charBold + appName + ", v" + appVersion + charNormal);
 		System.out.println("\nSintaxe: java -jar BGPSecXPlotGrouped.jar <cfg_path> <type_val>\n\n" + charBold + "First"
 				+ charNormal + " parameter must be the path/name of configuration file (in the "
-				+ "configuration file, the first line must be the file path of ASNs and "
-				+ "in each of others lines, the file path of datasets)\n" + charBold + "Second" + charNormal
+				+ "configuration file - the first line must be the file path of ASNs and "
+				+ "in each of others lines is the path/filename of RIS datasets)\n" + charBold + "Second" + charNormal
 				+ " one must be the type of validation like 0=OA, 1=PV, 2=PEV or 3=ALL\n");
 		System.exit(0);
 	}

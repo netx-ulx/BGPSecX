@@ -31,14 +31,14 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 
-public class BgpSecXRpkiValidation {
+public class BgpSecXRpkiValidator {
 
 	private final static String appVersion = "1.0.0-b20171015-01";
 	private final static String appName = "BGPSecX-RPKIValidator";
 	private final static String csvDir = System.getProperty("user.dir") + "/csv";
 	private final static String charBold = "\033[0;1m";
 	private final static String charNormal = "\033[0;0m";
-	private final static int resultInterval = 10;
+	private final static int resultInterval = 5000;
 	private static HashMap<String, List<Long>> sampleResult = new HashMap<>();
 	private static HashMap<String, Long> tb = new HashMap<>();
 	private static ArrayList<String> resultsGnuPlot = new ArrayList<String>();
@@ -53,6 +53,8 @@ public class BgpSecXRpkiValidation {
 	private static int datasetCount = 0;
 
 	public static void main(String[] args) {
+		//verifyRoa("0", "0");
+		//System.exit(0);
 		if (args.length > 0) {
 			initMap();
 			resultsGnuPlot.clear();
@@ -102,22 +104,23 @@ public class BgpSecXRpkiValidation {
 				ArrayList<String> aList = new ArrayList<String>(Arrays.asList(line.split(" ")));
 				for (int i = 1; i < aList.size(); i++) {
 					countQueries++; // Count number of prefixes (or validations)
-					valResult = "AS" + verifyRoa(aList.get(0), aList.get(i));
-					if (valResult.equals("Valid")) {
-						tb.put("v", tb.get("v") + 1);
-					}
-
-					if (valResult.equals("Invalid")) {
-						tb.put("i", tb.get("i") + 1);
-					} else {
+					valResult = verifyRoa(aList.get(0), aList.get(i));
+					switch (valResult) {
+					case "nf":
 						tb.put("nf", tb.get("nf") + 1);
+						break;
+					case "v":
+						tb.put("v", tb.get("v") + 1);
+						break;
+					case "i":
+						tb.put("i", tb.get("i") + 1);
+						break;
 					}
 				}
 				countUptd++;
 				if ((countUptd - count2) == resultInterval) {
 					printResult("");
 					count2 = countUptd;
-					break;
 				}
 			}
 			printResult(filename);
@@ -130,11 +133,15 @@ public class BgpSecXRpkiValidation {
 	}
 
 	public static String verifyRoa(String asn, String prefix) {
+		//int countRoas = 0;
+		asn = "AS" + asn;
+		// System.out.println("To verify, ASN=" + asn + ", Prefix=" + prefix);
 		byte[] jsonData;
 		try {
 			jsonData = Files.readAllBytes(Paths.get(roaDataset));
 			JsonParser jsonParser = new JsonFactory().createParser(jsonData);
 			while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+				//countRoas++;
 				String name = jsonParser.getCurrentName();
 				// Math ASN
 				if ("asn".equals(name)) {
@@ -158,9 +165,9 @@ public class BgpSecXRpkiValidation {
 							// Math prefix mask
 							if (rxPrefixMask == jsonPrefixMask
 									|| (rxPrefixMask > jsonPrefixMask && rxPrefixMask <= jsonMaskLength)) {
-								return "Valid";
+								return "v";
 							} else {
-								return "Invalid";
+								return "i";
 							}
 						}
 					}
@@ -169,9 +176,10 @@ public class BgpSecXRpkiValidation {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			printFileNotFound(roaDataset);
 		}
-		return "Not Found";
+		//System.out.println("Total of ROAs: " + countRoas);
+		return "nf";
 	}
 
 	public static void printResult(String filename) {
@@ -179,8 +187,10 @@ public class BgpSecXRpkiValidation {
 				+ tb.get("v") + ", Invalid updates: " + tb.get("i") + ", Not Found: " + tb.get("nf"));
 		// Write csv file if dataset finished
 		if (!(filename.equals(""))) {
-			fileName = csvDir + "/" + filename.substring(filename.lastIndexOf('/') + 1, filename.indexOf('.'))
-					+ "_rpki.csv";
+			// Get filename without extension and put a new
+			int beginFileName = filename.lastIndexOf('/') + 1;
+			int endFileName = filename.lastIndexOf('.');
+			fileName = csvDir + "/" + filename.substring(beginFileName, endFileName) + "_rpki.csv";
 			BufferedWriter writeFile = null;
 			try {
 				checkDir(csvDir);
@@ -211,7 +221,6 @@ public class BgpSecXRpkiValidation {
 		// int totCsvGroups = Math.round(datasetCount / 6);
 		int totCsvGroups = (datasetCount + 6 - 1) / 6;
 		int fileNumber = 0;
-		System.out.println("Tot grp: " + totCsvGroups + ", Countdataset: " + datasetCount);
 		BufferedWriter writeFile = null;
 		int fieldCont = 0;
 		int count = 0;
@@ -228,7 +237,7 @@ public class BgpSecXRpkiValidation {
 				} else {
 					writeFile.write(";");
 				}
-				// Check if already processed six dataset 
+				// Check if already processed six dataset
 				if (count == 6 && i < resultsGnuPlot.size() - 1) {
 					writeFile.close();
 					System.out.println("Created the CSV file fo GNUPlot: " + fileName);
@@ -237,7 +246,7 @@ public class BgpSecXRpkiValidation {
 					writeFile = Files.newBufferedWriter(Paths.get(fileName));
 					count = 0;
 				}
-			}		
+			}
 			writeFile.close();
 			System.out.println("Created the CSV file fo GNUPlot: " + fileName);
 		} catch (IOException e) {
