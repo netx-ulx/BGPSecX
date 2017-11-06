@@ -50,7 +50,7 @@ For reference, the simulations tests was made in a Ubuntu 16.04 and the instalat
 
 ```sh
 $ cd ~
-$ sudo apt-get install oracle-java8-installer gnuplot git unzip wget
+$ sudo apt-get install oracle-java8-installer gnuplot git wget
 $ git clone https://www.github.com/netx-ulx/BGPSecX
 $ cd BGPSecX/evaluation/datasets
 $ wget https://goo.gl/eXp6ch/ris_dataset_20170901.tar.gz
