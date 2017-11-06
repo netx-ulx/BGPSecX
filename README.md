@@ -54,7 +54,7 @@ $ sudo apt-get install oracle-java8-installer gnuplot git unzip wget
 $ git clone https://www.github.com/netx-ulx/BGPSecX
 $ cd BGPSecX/evaluation/datasets
 $ wget https://goo.gl/45cicr
-$ unzip evaluation/datasets/ris_peering_datasets.zip -d ./
+$ unzip evaluation/datasets/ris_peering_datasets_20170901.zip -d ./
 ```
 If you wish to make evaluation using Routing-dataset of another day, you need to download the file from RIPE/RIS and applied some filters. For it, you need to ignore the last two commands above and make the procecedures as explained at the next subsection. If no, you should to jump to the "Evaluation tests" section.
 
