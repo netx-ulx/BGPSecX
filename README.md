@@ -46,15 +46,15 @@ To start the simulation you needs to have a Unix-like operation system or simila
 - Git application to download the BGPSecX datasets and java codes from repository.
 - BGPSecX applications and datasets from repository. Due the Routing-dataset to be very large (around 102 Mbytes), we don't put it in the git. Below we get it from using "wget" application (with shorten url).
 
-For reference, the simulations tests was made in a Ubuntu 16.04 and the instalation procedures of artefacts above can be done as below (we consider the home user as the work directory and symbol "$" is the bash prompt):
+For reference, the simulations tests was made in a Ubuntu 16.04 and the instalation procedures of artefacts above can be done as below (**we consider the home user as the work directory and symbol "$" is the bash prompt**):
 
 ```sh
 $ cd ~
 $ sudo apt-get install oracle-java8-installer gnuplot git wget
 $ git clone https://www.github.com/netx-ulx/BGPSecX
 $ cd BGPSecX/evaluation/datasets
-$ wget https://goo.gl/FBStNR
-$ tar -zxvf ris_dataset_20170901.zip -C ./
+$ wget --trust-server-names https://goo.gl/FBStNR
+$ tar -zxvf ris_dataset_20170901.tar.gz -C ./
 ```
 If you wish to make evaluation using Routing-dataset of another day, you need to download the file from RIPE/RIS and applied some filters. For it, you need to ignore the last two commands above and make the procecedures as explained at the next subsection. If no, you should to jump to the "Evaluation tests" section.
 
@@ -97,13 +97,13 @@ Procedures to start validation:
 ```sh
 $ cd ~
 $ cd BGPSecX
-$ java -jar evaluation/codes/java/jar/BgpSecXValidator.jar evaluation/cfg/validate.cfg 3
+$ java -jar evaluation/codes/java/jar/BgpSecXValidator.jar evaluation/cfg/validate.cfg 3 100
 ```
 The last command above process all validations, i.e., Origin Authetication, Path-validation and Path-end Validation. But, you may to process one of a time, only changing the last parameter.
 
-The sintax of applications is: **java -jar BGPSecXValidator.jar < cfg_path >  < type_val >**
+The sintax of applications is: **java -jar BGPSecXValidator.jar < cfg_path >  < type_val > [total_samples]**
 
-First parameter must be the path/name of configuration file. In the configuration file, the first line must be the file path of IXP-dataset, and in each others lines, the file path of each Routing-dataset files. Second one must be the type of validation like 0=OA, 1=PV, 2=PEV or 3=ALL.
+First parameter must be the path/name of configuration file. In the configuration file, the first line must be the file path of IXP-dataset, and in each others lines, the file path of each Routing-dataset files. Second one must be the type of validation like 0=OA, 1=PV, 2=PEV or 3=ALL. Last one is the total of samples for each percentage group (it is optional parameter and 10 is the default value, but if used should be > 0).
 
 Finished validations, the generated CSVs files are stored in a new path called "csv". The files are named as rrc**xx**_20160901_**yy**.csv, where xx is the number of routing dataset and yy is the type of validations, i.e., oa, pv or pev. After this, we may to plot the chart as below:
 
