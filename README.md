@@ -101,7 +101,7 @@ $ java -jar evaluation/codes/java/jar/BgpSecXValidator.jar evaluation/cfg/valida
 ```
 The last command above process all validations, i.e., Origin Authetication, Path-validation and Path-end Validation. But, you may to process one of a time, only changing the last parameter.
 
-The sintax of applications is: **java -jar BGPSecXValidator.jar < cfg_path >  < type_val > [total_samples]**
+The sintax of applications is: **java -jar BGPSecXValidator.jar < cfg_path >  < type_val > [ total_samples ]**
 
 First parameter must be the path/name of configuration file. In the configuration file, the first line must be the file path of IXP-dataset, and in each others lines, the file path of each Routing-dataset files. Second one must be the type of validation like 0=OA, 1=PV, 2=PEV or 3=ALL. Last one is the total of samples for each percentage group (it is optional parameter and 10 is the default value, but if used should be > 0).
 
