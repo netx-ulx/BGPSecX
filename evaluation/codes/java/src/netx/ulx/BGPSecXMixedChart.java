@@ -39,7 +39,7 @@ import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
-public class BGPSecXMixedChart extends ApplicationFrame {
+public class BGPSecXMixedChart100 extends ApplicationFrame {
 
 	public static String appVersion = "1.0.0_b20171009-00";
 	public static String appName = "BGPSecX-MixChart";
@@ -53,6 +53,7 @@ public class BGPSecXMixedChart extends ApplicationFrame {
 	public static int counet;
 	public static int start; 
 	public static int end; 
+	private static int totSamples;
 	public static List<Long> dataList = new ArrayList<Long>(); 
 	static String[] categoryGrp = { "OA", "PEV", "PV" };
 	public static ArrayList<String> datasetList = new ArrayList<String>();
@@ -64,7 +65,6 @@ public class BGPSecXMixedChart extends ApplicationFrame {
 	public static void main(final String[] args) {
 		// Flag to skip csv header
 		int countLines = 0;
-		int startCol, endCol;
 		ArrayList<String> aListCsv = null;
 		if (args.length == 2) {
 			// Read file which contains path of the datafiless
@@ -77,19 +77,14 @@ public class BGPSecXMixedChart extends ApplicationFrame {
 						String dataFile = aList.get(0) + categoryGrp[i].toLowerCase() + ".csv";
 						// Open dataset file
 						Stream<String> linesCsv = Files.lines(Paths.get(dataFile), StandardCharsets.ISO_8859_1);
-						startCol = 3;
-						endCol = 12;
 						int countPercent = 0;
 						for (String lineCsv : (Iterable<String>) linesCsv::iterator) {
-							// Skip header of CSV file
+							// Skip CSV header
 							if (countLines > 0 && countLines < 7) {
 								aListCsv = new ArrayList<String>(Arrays.asList(lineCsv.split(" ")));
+								totSamples = aListCsv.size();
 								dataList = new ArrayList<Long>();
-								if (countLines == 6) {
-									startCol = 3;
-									endCol = 3;
-								}
-								for (int j = startCol; j < endCol; j++) {
+								for (int j = 3; j < totSamples; j++) {
 									dataList.add(Long.valueOf(aListCsv.get(j)));
 								}
 								dataResult.put(aList.get(1) + categoryGrp[i] + percentGrp[countPercent],
@@ -105,7 +100,7 @@ public class BGPSecXMixedChart extends ApplicationFrame {
 					int beginFileName = aList.get(0).lastIndexOf('/') + 1;
 					int endFileName = aList.get(0).lastIndexOf('_');
 					String imgName = chartDir + aList.get(0).substring(beginFileName, endFileName) + "_oa_pev_pv.png";
-					final BGPSecXMixedChart plotChart = new BGPSecXMixedChart(
+					final BGPSecXMixedChart100 plotChart = new BGPSecXMixedChart100(
 							"Validation of OA, PV and PEV by BGPSecX from " + aList.get(1), "",
 							"Percentage based in " + aListCsv.get(0) + " updates", imgName, aList.get(1));
 					plotChart.pack();
@@ -126,7 +121,7 @@ public class BGPSecXMixedChart extends ApplicationFrame {
 	}
 
 	@SuppressWarnings("deprecation")
-	public BGPSecXMixedChart(final String title, String xLabel, String yLabel, String imgFilename,
+	public BGPSecXMixedChart100(final String title, String xLabel, String yLabel, String imgFilename,
 			String group) {
 		super(title);
 		Font xFont = new Font("Arial", Font.BOLD, 17); // Categoria no eixo X

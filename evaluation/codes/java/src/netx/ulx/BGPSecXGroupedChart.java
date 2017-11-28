@@ -39,7 +39,7 @@ import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
-public class BGPSecXGroupedChart extends ApplicationFrame {
+public class BGPSecXGroupedChart100 extends ApplicationFrame {
 	private static final long serialVersionUID = 1L;
 	private final static String appVersion = "1.0.0_b20171020-01";
 	private final static String appName = "BGPSecX-ChartPlot";
@@ -51,6 +51,7 @@ public class BGPSecXGroupedChart extends ApplicationFrame {
 	public final static String charNormal = "\033[0;0m";
 	private final int widthImg = 1360;
 	private final int heightImg = 720;
+	private static int totSamples;
 	// 0=OA, 1=PV, 2=PEV, 3=All
 	private static int typeValidation;
 	private static int start;
@@ -109,7 +110,7 @@ public class BGPSecXGroupedChart extends ApplicationFrame {
 							checkDir();
 							String imgName = chartDir + "/" + categoryGrp[typeValidation] + i + "-" + totalChart
 									+ ".png";
-							final BGPSecXGroupedChart plotChart = new BGPSecXGroupedChart(
+							final BGPSecXGroupedChart100 plotChart = new BGPSecXGroupedChart100(
 									chartTitle[typeValidation] + " " + numberCharts, "",
 									"% based in the total of prefixes", imgName);
 							plotChart.pack();
@@ -131,7 +132,7 @@ public class BGPSecXGroupedChart extends ApplicationFrame {
 	}
 
 	@SuppressWarnings("deprecation")
-	public BGPSecXGroupedChart(final String title, String xLabel, String yLabel, String imgFilename) {
+	public BGPSecXGroupedChart100(final String title, String xLabel, String yLabel, String imgFilename) {
 		super(title);
 		Font xFont = new Font("Arial", Font.BOLD, 17);
 		Font yFont = new Font("Arial", Font.BOLD, 16);
@@ -191,8 +192,8 @@ public class BGPSecXGroupedChart extends ApplicationFrame {
 	}
 
 	public static void createChartValues(int start, int end) {
-		BGPSecXGroupedChart.start = start;
-		BGPSecXGroupedChart.end = end;
+		BGPSecXGroupedChart100.start = start;
+		BGPSecXGroupedChart100.end = end;
 		int countLines = 0;
 		int countPercent = 0;
 		// Interval of lines to read in dataset file configuration
@@ -209,9 +210,10 @@ public class BGPSecXGroupedChart extends ApplicationFrame {
 					// New dataset, skip header csv
 					if (countLines > 0 && countLines < 7) {
 						ArrayList<String> aList2 = new ArrayList<String>(Arrays.asList(line2.split(" ")));
+						totSamples = aList2.size();
 						dataList = new ArrayList<Double>();
 						// Scan sample values in column for each line
-						for (int j = 3; j < 13; j++) {
+						for (int j = 3; j < totSamples; j++) {
 							if (countLines == 6) {
 								// Repeat the same value when in 100%
 								dataList.add(Double.valueOf(aList2.get(3)));
