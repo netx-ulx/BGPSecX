@@ -39,7 +39,7 @@ import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
-public class BGPSecXGroupedChart100 extends ApplicationFrame {
+public class BgpSecXGroupedChart extends ApplicationFrame {
 	private static final long serialVersionUID = 1L;
 	private final static String appVersion = "1.0.0_b20171020-01";
 	private final static String appName = "BGPSecX-ChartPlot";
@@ -52,7 +52,6 @@ public class BGPSecXGroupedChart100 extends ApplicationFrame {
 	private final int widthImg = 1360;
 	private final int heightImg = 720;
 	private static int totSamples;
-	// 0=OA, 1=PV, 2=PEV, 3=All
 	private static int typeValidation;
 	private static int start;
 	private static int end;
@@ -110,7 +109,7 @@ public class BGPSecXGroupedChart100 extends ApplicationFrame {
 							checkDir();
 							String imgName = chartDir + "/" + categoryGrp[typeValidation] + i + "-" + totalChart
 									+ ".png";
-							final BGPSecXGroupedChart100 plotChart = new BGPSecXGroupedChart100(
+							final BgpSecXGroupedChart plotChart = new BgpSecXGroupedChart(
 									chartTitle[typeValidation] + " " + numberCharts, "",
 									"% based in the total of prefixes", imgName);
 							plotChart.pack();
@@ -132,7 +131,7 @@ public class BGPSecXGroupedChart100 extends ApplicationFrame {
 	}
 
 	@SuppressWarnings("deprecation")
-	public BGPSecXGroupedChart100(final String title, String xLabel, String yLabel, String imgFilename) {
+	public BgpSecXGroupedChart(final String title, String xLabel, String yLabel, String imgFilename) {
 		super(title);
 		Font xFont = new Font("Arial", Font.BOLD, 17);
 		Font yFont = new Font("Arial", Font.BOLD, 16);
@@ -192,8 +191,8 @@ public class BGPSecXGroupedChart100 extends ApplicationFrame {
 	}
 
 	public static void createChartValues(int start, int end) {
-		BGPSecXGroupedChart100.start = start;
-		BGPSecXGroupedChart100.end = end;
+		BgpSecXGroupedChart.start = start;
+		BgpSecXGroupedChart.end = end;
 		int countLines = 0;
 		int countPercent = 0;
 		// Interval of lines to read in dataset file configuration

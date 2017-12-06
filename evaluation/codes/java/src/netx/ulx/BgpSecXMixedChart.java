@@ -39,12 +39,12 @@ import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
-public class BGPSecXMixedChart100 extends ApplicationFrame {
+public class BgpSecXMixedChart extends ApplicationFrame {
 
 	public static String appVersion = "1.0.0_b20171009-00";
 	public static String appName = "BGPSecX-MixChart";
 	private static final long serialVersionUID = 1L;
-	private final static String chartDir = System.getProperty("user.dir") + "/chart";
+	private final static String chartDir = System.getProperty("user.dir") + "/chart/";
 	public final static String charBold = "\033[0;1m";
 	public final static String charNormal = "\033[0;0m";
 	final int widthImg = 1360;
@@ -66,7 +66,7 @@ public class BGPSecXMixedChart100 extends ApplicationFrame {
 		// Flag to skip csv header
 		int countLines = 0;
 		ArrayList<String> aListCsv = null;
-		if (args.length == 2) {
+		if (args.length == 1) {
 			// Read file which contains path of the datafiless
 			try (Stream<String> linesPath = Files.lines(Paths.get(args[0]), StandardCharsets.ISO_8859_1)) {
 				for (String linePath : (Iterable<String>) linesPath::iterator) {
@@ -100,7 +100,7 @@ public class BGPSecXMixedChart100 extends ApplicationFrame {
 					int beginFileName = aList.get(0).lastIndexOf('/') + 1;
 					int endFileName = aList.get(0).lastIndexOf('_');
 					String imgName = chartDir + aList.get(0).substring(beginFileName, endFileName) + "_oa_pev_pv.png";
-					final BGPSecXMixedChart100 plotChart = new BGPSecXMixedChart100(
+					final BgpSecXMixedChart plotChart = new BgpSecXMixedChart(
 							"Validation of OA, PV and PEV by BGPSecX from " + aList.get(1), "",
 							"Percentage based in " + aListCsv.get(0) + " updates", imgName, aList.get(1));
 					plotChart.pack();
@@ -109,7 +109,7 @@ public class BGPSecXMixedChart100 extends ApplicationFrame {
 					dataResult.clear();
 				}
 			} catch (IOException e) {
-				System.out.println("I/O error, check the path/filename: ");
+				System.out.println("I/O error, check the path/filename.");
 				System.exit(0);
 			}
 			// if args.length
@@ -121,7 +121,7 @@ public class BGPSecXMixedChart100 extends ApplicationFrame {
 	}
 
 	@SuppressWarnings("deprecation")
-	public BGPSecXMixedChart100(final String title, String xLabel, String yLabel, String imgFilename,
+	public BgpSecXMixedChart(final String title, String xLabel, String yLabel, String imgFilename,
 			String group) {
 		super(title);
 		Font xFont = new Font("Arial", Font.BOLD, 17); // Categoria no eixo X
@@ -148,10 +148,9 @@ public class BGPSecXMixedChart100 extends ApplicationFrame {
 		domainAxis.setCategoryMargin(0.03);
 		plot.setDomainAxis(domainAxis);
 		CategoryItemRenderer rendererBox = ((CategoryPlot) renderer.getPlot()).getRenderer();
-		// NumberFormat fmt = NumberFormat.getInstance();
 		DecimalFormat pctFormat = new DecimalFormat("0.00%");
 		pctFormat.setMultiplier(1);
-		// Format fields of item values
+		// Format fields of values
 		rendererBox.setSeriesItemLabelGenerator(0, new StandardCategoryItemLabelGenerator("{0}", pctFormat));
 		rendererBox.setSeriesItemLabelGenerator(1, new StandardCategoryItemLabelGenerator("{2}", pctFormat));
 		rendererBox.setSeriesItemLabelGenerator(2, new StandardCategoryItemLabelGenerator("{3}", pctFormat));
