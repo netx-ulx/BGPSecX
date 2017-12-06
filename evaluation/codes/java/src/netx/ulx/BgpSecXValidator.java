@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
-public class BgpSecXValidator {
+public class BgpSecXValidator100 {
 
 	public final static String appVersion = "1.0.0_b201710100-00";
 	public final static String appName = "BGPSecX - Dataset validator";
@@ -70,8 +70,9 @@ public class BgpSecXValidator {
 	public static Instant overallTime;
 
 	public static void main(String[] args) {
+		int arg2 = 0;
 		allValidAsn.clear();
-		if (args.length == 2) {
+		if (args.length > 1 && args.length < 4) {
 			// Check if second parameter is a number
 			if (args[1].matches("[+-]?\\d*(\\.\\d+)?")) {
 				// Type of validation (OA=0, PV=1, PEV=2, All=3)
@@ -82,6 +83,16 @@ public class BgpSecXValidator {
 					if (validationType == 3) {
 						totVal = 3;
 					}
+					
+					if (args.length == 3) {
+						if (args[2].matches("[+-]?\\d*(\\.\\d+)?") && Integer.parseInt(args[2]) > 0) {
+							arg2 = Integer.parseInt(args[2]);
+							totSamples = arg2;
+						} else {
+							printSintax();
+						}
+					}
+							
 					System.out.println(charBold + appName + ", v" + appVersion);
 					overallTime = Instant.now();
 					for (int k = 0; k < totVal; k++) {
@@ -92,6 +103,7 @@ public class BgpSecXValidator {
 						if (totVal == 3) {
 							validationType = k;
 						}
+						
 						try (Stream<String> lines = Files.lines(Paths.get(args[0]), StandardCharsets.ISO_8859_1)) {
 							// Read path of each datafile
 							for (String datasetPath : (Iterable<String>) lines::iterator) {
@@ -109,8 +121,6 @@ public class BgpSecXValidator {
 										// Make only one sample for 100%
 										if (i == percentLabels.length - 1) {
 											totSamples = 1;
-										} else {
-											totSamples = 10;
 										}
 
 										for (int j = 1; j <= totSamples; j++) {
@@ -148,6 +158,7 @@ public class BgpSecXValidator {
 												dataResultP.add(tb.get(percentLabels[i] + "p"));
 											}
 										} // For j
+										totSamples = arg2;
 										sampleResult.put(percentLabels[i] + "v", dataResultV);
 										// For PV Validation
 										if (validationType == 1) {
@@ -184,11 +195,16 @@ public class BgpSecXValidator {
 			checkDir(csvDir);
 			writeFile = Files.newBufferedWriter(
 					Paths.get(csvDir + "/" + filename + "_" + categoryLabels[validationType] + ".csv"));
-			writeFile.write("tot_queries avg_valid percent_valid s1 s2 s3 s4 s5 s6 s7 s8 s9 s10");
+			String csvHeader = new String();
+			for (int i=0; i < totSamples; i++) {
+				csvHeader = csvHeader + " s" + Integer.toString(i + 1);
+			}
+			writeFile.write("tot_queries avg_valid percent_valid" + csvHeader);
 			writeFile.newLine();
 
 			System.out.println("\n--- Results ---");
 			for (int i = 0; i < percentLabels.length; i++) {
+				System.out.println("--> " + percentLabels.length);
 				dataResultV = sampleResult.get(percentLabels[i] + "v");
 				double average = dataResultV.stream().mapToLong(a -> a).average().getAsDouble();
 				System.out.println(countUpdts + " " + decFormat.format(average) + " "
@@ -370,11 +386,12 @@ public class BgpSecXValidator {
 
 	public static void printSintax() {
 		System.out.println(charBold + appName + ", v" + appVersion + charNormal);
-		System.out.println("\nSintaxe: java -jar BGPSecXPlotGrouped.jar <cfg_path> <type_val>\n\n" + charBold + "First"
+		System.out.println("\nSintaxe: java -jar BGPSecXPlotGrouped.jar <cfg_path> <type_val> [total_samples]\n\n" + charBold + "First"
 				+ charNormal + " parameter must be the path/name of configuration file (in the "
 				+ "configuration file - the first line must be the file path of ASNs and "
 				+ "in each of others lines is the path/filename of RIS datasets)\n" + charBold + "Second" + charNormal
-				+ " one must be the type of validation like 0=OA, 1=PV, 2=PEV or 3=ALL\n");
+				+ " one must be the type of validation like 0=OA, 1=PV, 2=PEV or 3=ALL\n" + charBold + "Last one" + charNormal
+				+ " is the total of samples for each percentage group (it is optional and 10 is the default value, but if used should be > 0)\n");
 		System.exit(0);
 	}
 
